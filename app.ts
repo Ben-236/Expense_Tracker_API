@@ -9,6 +9,7 @@ import morgan from "morgan";
 import config from "root/src/config/env";
 import codes from "root/src/utils/statusCode";
 import { AppError } from "./src/utils/error";
+import userRouter from "./src/routes";
 dotenv.config();
 
 const app = express();
@@ -36,9 +37,9 @@ app.get("/", (_req: Request, res: Response, _next: NextFunction) => {
 });
 
 //API routes
-app.use(auditLogMiddleware);
 
-app.use("/api/v1/admin", adminRouter);
+
+app.use("/api/v1/user", userRouter);
 
 app.use((_req: Request, res: Response, _next: NextFunction) => {
   res.status(codes.notFound).send("Route not found");

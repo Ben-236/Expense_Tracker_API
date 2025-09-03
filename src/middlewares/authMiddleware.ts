@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 declare global {
   namespace Express {
     interface Request {
-      admin: Admin;
+      user: User;
     }
   }
 }
@@ -35,11 +35,11 @@ export const protectRoute = catchAsync(
 
     const { id } = jwt.verify(token, config.jwtSecret) as { id: string };
 
-    const admin = await prisma.admin.findUniqueOrThrow({
+    const user = await prisma.user.findUniqueOrThrow({
       where: { id },
     });
 
-    req.admin = admin;
+    req.user = user;
 
     next();
   }

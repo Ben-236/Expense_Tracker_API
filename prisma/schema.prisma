@@ -10,12 +10,13 @@ datasource db {
 model User {
   id             String              @id @default(uuid())
   email          String              @unique
-  username       String              @unique
+  firstName      String
+  lastName       String
   password       String
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
-  // Relations
+
   transactions   Transaction[]
   categories     Category[]
   budgets        Budget[]
@@ -32,7 +33,7 @@ model Transaction {
   description String?
   date        DateTime    @default(now())
 
-  // Foreign keys
+
   userId      String
   user        User        @relation(fields: [userId], references: [id])
 

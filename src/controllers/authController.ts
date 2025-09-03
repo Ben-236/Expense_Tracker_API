@@ -74,27 +74,9 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
     email,
     phoneNumber,
     password: unhashedPassword,
-    roleId,
-    permissions: requestPermissions = [],
   } = req.body as unknown as TCreateUserType;
 
-  const role = await prisma.role.findUnique({
-    where: { id: roleId },
-  });
-
-  if (!role) {
-    throw new AppError(codes.notFound, "Role not found");
-  }
-
   const password = await bcrypt.hash(unhashedPassword, 12);
-
-  const permissionSet = new Set([
-    ...role.permissions,
-    ...requestPermissions,
-    ...COMPULSORY_PERMISSIONS,
-  ]);
-
-  const permissions = Array.from(permissionSet);
 
   const user = await prisma.user.create({
     data: {
@@ -102,7 +84,6 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
       lastName,
       email,
       phoneNumber,
-      roleId,
       password,
       permissions,
       isEnabled: true,
@@ -118,29 +99,18 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
   res.status(codes.created).json({
     status: "success",
     message: "User Account Successfully Created",
-    data: { id: user.id, email: user.email, role: role.name },
+    data: { id: user.id, email: user.email },
   });
 });
 
 export const updateUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const {
-    firstName,
-    lastName,
-    phoneNumber,
-    roleId,
-    permissions: requestPermissions = [],
-  } = req.body as unknown as TUpdateUserType;
-
-  const permissionSet = new Set([
-    ...requestPermissions,
-    ...COMPULSORY_PERMISSIONS,
-  ]);
-  const permissions = Array.from(permissionSet);
+  const { firstName, lastName, phoneNumber } =
+    req.body as unknown as TUpdateUserType;
 
   const user = await prisma.user.update({
     where: { id },
-    data: { firstName, lastName, phoneNumber, roleId, permissions },
+    data: { firstName, lastName, phoneNumber },
   });
 
   res.status(codes.success).json({
