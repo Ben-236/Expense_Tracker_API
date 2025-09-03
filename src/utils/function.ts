@@ -33,22 +33,3 @@ export const getFrontendUrl = (
 
   return url.toString();
 };
-
-export const generateSerialNumber = async (): Promise<string> => {
-  const companyPrefix = "REV";
-  const yearPart = new Date().getFullYear().toString();
-
-  const randomSegment = (length: number): string => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  const midSection = randomSegment(6);
-  const serialNumber = `${companyPrefix}-${midSection}-${yearPart}`;
-
-  return serialNumber;
-};
