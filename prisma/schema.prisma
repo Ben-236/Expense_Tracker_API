@@ -1,15 +1,122 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String              @id @default(uuid())
+  email          String              @unique
+  username       String              @unique
+  password       String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  // Relations
+  transactions   Transaction[]
+  categories     Category[]
+  budgets        Budget[]
+  goals          SavingsGoal[]
+  notifications  Notification[]
+  recurringTx    RecurringTransaction[]
+  backups        Backup[]
+}
+
+model Transaction {
+  id          String     @id @default(uuid())
+  type        TransactionType
+  amount      Float
+  description String?
+  date        DateTime    @default(now())
+
+  // Foreign keys
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
+
+  recurringId String?
+  recurring   RecurringTransaction? @relation(fields: [recurringId], references: [id])
+}
+
+model RecurringTransaction {
+  id          String     @id @default(uuid())
+  type        TransactionType
+  amount      Float
+  description String?
+  frequency   String     // e.g., "monthly", "weekly"
+  startDate   DateTime
+  endDate     DateTime?
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+
+  transactions Transaction[]
+}
+
+model Category {
+  id        String        @id @default(uuid())
+  name      String
+  createdAt DateTime      @default(now())
+
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+
+  transactions Transaction[]
+  budgets    Budget[]
+}
+
+model Budget {
+  id          String     @id @default(uuid())
+  amount      Float
+  spent       Float      @default(0)
+  startDate   DateTime   @default(now())
+  endDate     DateTime?
+
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+}
+
+model SavingsGoal {
+  id          String     @id @default(uuid())
+  name        String
+  target      Float
+  saved       Float      @default(0)
+  deadline    DateTime?
+  createdAt   DateTime   @default(now())
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String     @id @default(uuid())
+  message   String
+  type      String     // e.g., "budget_alert", "goal_update"
+  read      Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+model Backup {
+  id        String     @id @default(uuid())
+  status    String     // e.g., "success", "failed"
+  createdAt DateTime   @default(now())
+
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
 }
