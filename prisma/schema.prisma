@@ -8,117 +8,120 @@ datasource db {
 }
 
 model User {
-  id             String              @id @default(uuid())
-  email          String              @unique
-  firstName      String
-  lastName       String
-  phoneNumber    String?
-  password       String
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  isEnabled      Boolean             @default(true)
-  isDeleted      Boolean             @default(false)
-  passwordResetToken String?
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  firstName              String
+  lastName               String
+  phoneNumber            String?
+  password               String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  isEnabled              Boolean   @default(true)
+  isDeleted              Boolean   @default(false)
+  passwordResetToken     String?
   passwordResetExpiresAt DateTime?
 
-  transactions   Transaction[]
-  categories     Category[]
-  budgets        Budget[]
-  goals          SavingsGoal[]
-  notifications  Notification[]
-  recurringTx    RecurringTransaction[]
-  backups        Backup[]
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  goals         SavingsGoal[]
+  notifications Notification[]
+  recurringTx   RecurringTransaction[]
+  backups       Backup[]
+
 }
 
 model Transaction {
-  id          String     @id @default(uuid())
+  id          String          @id @default(uuid())
   type        TransactionType
   amount      Float
   description String?
-  date        DateTime    @default(now())
+  date        DateTime        @default(now())
+  isDeleted   Boolean @default(false)
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-
-  userId      String
-  user        User        @relation(fields: [userId], references: [id])
-
-  categoryId  String?
-  category    Category?   @relation(fields: [categoryId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
 
   recurringId String?
   recurring   RecurringTransaction? @relation(fields: [recurringId], references: [id])
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 }
 
 model RecurringTransaction {
-  id          String     @id @default(uuid())
+  id          String          @id @default(uuid())
   type        TransactionType
   amount      Float
   description String?
-  frequency   String     // e.g., "monthly", "weekly"
+  frequency   String // e.g., "monthly", "weekly"
   startDate   DateTime
   endDate     DateTime?
 
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   transactions Transaction[]
 }
 
 model Category {
-  id        String        @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String
-  createdAt DateTime      @default(now())
+  createdAt DateTime @default(now())
 
-  userId    String
-  user      User          @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   transactions Transaction[]
-  budgets    Budget[]
+  budgets      Budget[]
 }
 
 model Budget {
-  id          String     @id @default(uuid())
-  amount      Float
-  spent       Float      @default(0)
-  startDate   DateTime   @default(now())
-  endDate     DateTime?
+  id        String    @id @default(uuid())
+  amount    Float
+  spent     Float     @default(0)
+  startDate DateTime  @default(now())
+  endDate   DateTime?
 
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model SavingsGoal {
-  id          String     @id @default(uuid())
-  name        String
-  target      Float
-  saved       Float      @default(0)
-  deadline    DateTime?
-  createdAt   DateTime   @default(now())
+  id        String    @id @default(uuid())
+  name      String
+  target    Float
+  saved     Float     @default(0)
+  deadline  DateTime?
+  createdAt DateTime  @default(now())
 
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Notification {
-  id        String     @id @default(uuid())
+  id        String   @id @default(uuid())
   message   String
-  type      String     // e.g., "budget_alert", "goal_update"
-  read      Boolean    @default(false)
-  createdAt DateTime   @default(now())
+  type      String // e.g., "budget_alert", "goal_update"
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Backup {
-  id        String     @id @default(uuid())
-  status    String     // e.g., "success", "failed"
-  createdAt DateTime   @default(now())
+  id        String   @id @default(uuid())
+  status    String // e.g., "success", "failed"
+  createdAt DateTime @default(now())
 
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 enum TransactionType {

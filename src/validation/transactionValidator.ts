@@ -12,7 +12,21 @@ export const createTransactionValidator = Yup.object().shape({
   //recurring: Yup.boolean().required("Recurring is required"),
 });
 
+export const getAllTransactionsValidator = Yup.object().shape({
+category: Yup.string().optional(),
+  type: Yup.string().optional(),
+  dateFrom: Yup.date().optional(),
+  dateTo: Yup.date().optional(),}).concat(paginationValidation);
+  
 
 
+export const getTransactionByIdValidator = Yup.object().shape({
+  id: Yup.string().uuid().required("ID is required").uuid("Invalid ID format"),
+});
+
+export type TGetAllTransactionsType = Yup.InferType<
+  typeof getAllTransactionsValidator
+>;
+export type TGetTransactionByIdType = Yup.InferType< typeof getTransactionByIdValidator>;
 export type TCreateTransactionType = Yup.InferType<
   typeof createTransactionValidator>;
