@@ -4,12 +4,10 @@ import { TransactionType, User } from "@prisma/client";
 import catchAsync from "root/src/utils/catchAsync";
 import { AppError } from "root/src/utils/error";
 import codes from "root/src/utils/statusCode";
-import config from "root/src/config/env";
 import {
   generatePaginationQuery,
   generatePaginationMeta,
 } from "root/src/utils/query";
-import crypto from "crypto";
 import {
   TCreateTransactionType,
   TGetAllTransactionsType,
@@ -17,12 +15,6 @@ import {
 } from "../validation/transactionValidator";
 import { Prisma } from "@prisma/client";
 
-// 2. Expense & Income Logging
-
-
-// GET    /api/transactions/:id     -> Get a specific transaction
-// PATCH  /api/transactions/:id     -> Update a transaction
-// DELETE /api/transactions/:id     -> Delete a transaction
 // * Transaction fields: id, userId, type (expense/income), categoryId, amount, description, date, recurring (true/false)
 
 // 3. Recurring Transactions
@@ -130,9 +122,8 @@ export const getAllTransactions = catchAsync(
   }
 );
 
-
 export const getTransactionById = catchAsync(
-  async (req: Request, res: Response) => {  
+  async (req: Request, res: Response) => {
     const { id } = req.params as unknown as TGetTransactionByIdType;
 
     const transaction = await prisma.transaction.findUnique({
@@ -172,17 +163,17 @@ export const updateTransaction = catchAsync(
 
     if (!transaction) {
       throw new AppError(codes.notFound, "Transaction not found");
-    } 
+    }
     if (categoryId) {
       const category = await prisma.category.findFirst({
         where: { id: categoryId, userId },
       });
-      
+
       if (!category) {
         throw new AppError(codes.notFound, "Category not found");
       }
     }
-    
+
     const updatedTransaction = await prisma.transaction.update({
       where: { id, userId },
       data: {
@@ -206,7 +197,7 @@ export const deleteTransaction = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params as unknown as TGetTransactionByIdType;
 
-    const transaction = await prisma.transaction.findUnique({
+    const transaction = await prisma.transaction.findFirst({
       where: { id, userId: req.user.id },
     });
 
@@ -214,8 +205,8 @@ export const deleteTransaction = catchAsync(
       throw new AppError(codes.notFound, "Transaction not found");
     }
 
-    const deletedTransaction = await prisma.transaction.delete({
-      where: { id, userId: req.user.id },
+    const deletedTransaction = await prisma.transaction.update({
+      where: { id },
       data: {
         isDeleted: true,
       },
@@ -228,3 +219,4 @@ export const deleteTransaction = catchAsync(
     });
   }
 );
+
