@@ -85,16 +85,15 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
       email,
       phoneNumber,
       password,
-      permissions,
       isEnabled: true,
     },
   });
 
-  await EmailService.sendWelcomeUserEmail({
-    firstName,
-    email,
-    password: unhashedPassword,
-  });
+  // await EmailService.sendWelcomeUserEmail({
+  //   firstName,
+  //   email,
+  //   password: unhashedPassword,
+  // });
 
   res.status(codes.created).json({
     status: "success",
@@ -168,11 +167,11 @@ export const userForgotPassword = catchAsync(
 
     const passwordResetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-    await EmailService.sendUserResetPassword({
-      email: user.email,
-      firstName: user.firstName!,
-      passwordResetUrl,
-    });
+    // await EmailService.sendUserResetPassword({
+    //   email: user.email,
+    //   firstName: user.firstName!,
+    //   passwordResetUrl,
+    // });
 
     res.status(codes.success).json({
       status: "success",
@@ -270,7 +269,6 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
       email: true,
       phoneNumber: true,
       isEnabled: true,
-      role: { select: { id: true } },
       createdAt: true,
       updatedAt: true,
     },
@@ -306,7 +304,6 @@ export const getUserById = catchAsync(async (req: Request, res: Response) => {
       email: true,
       phoneNumber: true,
       isEnabled: true,
-      role: { select: { id: true } },
       createdAt: true,
       updatedAt: true,
     },
