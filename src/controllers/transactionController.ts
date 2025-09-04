@@ -26,10 +26,7 @@ import { Prisma } from "@prisma/client";
 
 // 4. Categories & Budgets
 
-// POST   /api/categories         -> Create category
-// GET    /api/categories         -> List categories
-// PATCH  /api/categories/:id     -> Update category
-// DELETE /api/categories/:id     -> Delete category
+
 
 // POST   /api/budgets            -> Set budget for category
 // GET    /api/budgets            -> List all budgets (with progress)
