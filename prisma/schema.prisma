@@ -28,7 +28,6 @@ model User {
   notifications Notification[]
   recurringTx   RecurringTransaction[]
   backups       Backup[]
-
 }
 
 model Transaction {
@@ -37,8 +36,8 @@ model Transaction {
   amount      Float
   description String?
   date        DateTime        @default(now())
-  isDeleted   Boolean @default(false)
-  
+  isDeleted   Boolean         @default(false)
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
@@ -47,8 +46,8 @@ model Transaction {
 
   recurringId String?
   recurring   RecurringTransaction? @relation(fields: [recurringId], references: [id])
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 }
 
 model RecurringTransaction {
@@ -70,8 +69,8 @@ model Category {
   id        String   @id @default(uuid())
   name      String
   createdAt DateTime @default(now())
-  isDeleted Boolean   @default(false)
-  updatedAt DateTime  @updatedAt
+  isDeleted Boolean  @default(false)
+  updatedAt DateTime @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -88,7 +87,7 @@ model Budget {
   endDate   DateTime?
   createdAt DateTime  @default(now())
 
-
+  isDeleted  Boolean  @default(false)
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 

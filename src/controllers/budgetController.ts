@@ -8,139 +8,176 @@ import {
   generatePaginationMeta,
 } from "root/src/utils/query";
 import { Prisma } from "@prisma/client";
-import { TCreateCategoryType, TGetAllCategoriesType, TGetCategoryByIdType, TUpdateCategoryType } from "../validation/categoryValidator";
+//import { TCreateCategoryType, TGetAllCategoriesType, TGetCategoryByIdType, TUpdateCategoryType } from "../validation/categoryValidator";
 
 
-export const createCategory = catchAsync(
+export const createBudget = catchAsync(
   async (req: Request, res: Response) => {
-    const { name } = req.body as unknown as TCreateCategoryType;
+    const { amount, categoryId, spent, startDate, endDate } =
+      req.body as unknown as TCreateBudgetType;
     const userId = req.user.id;
 
-    const category = await prisma.category.create({
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, userId },
+    });
+
+    if (!category) {
+      throw new AppError(codes.notFound, "Category not found");
+    }
+
+    const budget = await prisma.budget.create({
       data: {
-        name,
-        userId, 
+        userId,
+        categoryId,
+        amount,
+        spent,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
       },
     });
 
     res.status(codes.created).json({
       status: "success",
-      message: "Category created successfully",
-      data: { category },
+      message: "Budget created successfully",
+      data: { budget },
     });
   }
 );
 
-
-export const getAllCategories = catchAsync(
+export const getAllBudgets = catchAsync(
   async (req: Request, res: Response) => {
-    const { page, perPage } = req.query as unknown as TGetAllCategoriesType;
+    const { page, perPage, category, startDate, endDate } = req.query as unknown as TGetAllBudgetsType;
 
-    const categories = await prisma.category.findMany({
-      where: {
-        userId: req.user.id,
+    const where: Prisma.BudgetWhereInput = {
+      userId: req.user.id,
+      isDeleted: false,
+      ...(category && { categoryId: category }),
+      ...(startDate &&
+        endDate && {
+          startDate: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
+    };
+
+    const budgets = await prisma.budget.findMany({
+      where,
+      select: {
+        id: true,
+        amount: true,
+        spent: true,
+        startDate: true,
+        endDate: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
-      orderBy: { name: "asc" },
+      orderBy: { createdAt: "desc" },
       ...generatePaginationQuery({ page, perPage }),
     });
 
-    const totalCategories = await prisma.category.count({
-      where: {
-        userId: req.user.id,
-      },
-    });
+    const totalBudgets = await prisma.budget.count({ where });
 
     const pagination = generatePaginationMeta({
       page,
       perPage,
-      count: totalCategories,
+      count: totalBudgets,
     });
 
     res.status(codes.success).json({
-      status: "success",
-      message: "Categories retrieved successfully",
+      status: "sucess",
+      message: "Budget retrieved succesfully",
       data: {
         pagination,
-        categories,
-      },
+        budgets,
+      }
     });
   }
 );
 
-export const getCategoryById = catchAsync(
+export const getBudgetById = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params as unknown as TGetCategoryByIdType;
+    const { id } = req.params as unknown as TGetBudgetByIdType;
 
-    const category = await prisma.category.findUnique({
-  where: { id: id, userId: req.user.id },
-  select: {
-    id: true,
-    name: true,
-    budgets: {
+    const budget = await prisma.budget.findFirst({
+      where: { id, userId: req.user.id },
       select: {
         id: true,
         amount: true,
-        createdAt: true,
+        spent: true,
+        startDate: true,
+        endDate: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
-    },
-  },
-});
+    });
 
-
-    if (!category) {
-      throw new AppError(codes.notFound, "Category not found");
+    if (!budget) {
+      throw new AppError(codes.notFound, "Budget not found");
     }
 
     res.status(codes.success).json({
       status: "success",
-      message: "Category retrieved successfully",
-      data: { category },
+      message: "Budget retrieved successfully",
+      data: { budget },
     });
   }
 );
 
-export const updateCategory = catchAsync(
+export const updateBudget = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { name } = req.body as unknown as TUpdateCategoryType;
-    const userId = req.user.id;
+    const { id } = req.params as unknown as TUpdateBudgetType;
+    const { amount, spent, startDate, endDate } =
+      req.body as unknown as TUpdateBudgetType; 
+      const userId = req.user.id;
 
-    const category = await prisma.category.findUnique({
-      where: { id, userId },
-    });
+      const budget = await prisma.budget.findUnique({
+        where: { id, userId },
+      });
 
-    if (!category) {
-      throw new AppError(codes.notFound, "Category not found");
-    }
+      if (!budget) {
+        throw new AppError(codes.notFound, "Budget not found");
+      }
 
-    const updatedCategory = await prisma.category.update({
+    const updatedBudget = await prisma.budget.update({
       where: { id, userId },
       data: {
-        name,
+        amount,
+        spent,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
       },
     });
 
     res.status(codes.success).json({
       status: "success",
-      message: "Category updated successfully",
-      data: { updatedCategory },
+      message: "Budget updated successfully",
+      data: { updatedBudget },
     });
   }
 );
 
-export const deleteCategory = catchAsync(
+export const deleteBudget = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params as unknown as TGetCategoryByIdType;
+    const { id } = req.params as unknown as TGetBudgetByIdType;
 
-    const category = await prisma.category.findFirst({
+    const budget = await prisma.budget.findFirst({
       where: { id, userId: req.user.id },
     });
 
-    if (!category) {
-      throw new AppError(codes.notFound, "Category not found");
+    if (!budget) {
+      throw new AppError(codes.notFound, "Budget not found");
     }
 
-    const deletedCategory = await prisma.category.update({
+    const deletedBudget = await prisma.budget.update({
       where: { id },
       data: {
         isDeleted: true,
@@ -149,8 +186,8 @@ export const deleteCategory = catchAsync(
 
     res.status(codes.success).json({
       status: "success",
-      message: "Category deleted successfully",
-      data: { deletedCategory },
+      message: "Budget deleted successfully",
+      data: { deletedBudget },
     });
   }
-);  
+);
