@@ -8,7 +8,7 @@ import {
   generatePaginationMeta,
 } from "root/src/utils/query";
 import { Prisma } from "@prisma/client";
-//import { TCreateCategoryType, TGetAllCategoriesType, TGetCategoryByIdType, TUpdateCategoryType } from "../validation/categoryValidator";
+import { TCreateBudgetType, TGetAllBudgetsType, TGetBudgetByIdType, TUpdateBudgetType } from "../validation/budgetValidation";
 
 
 export const createBudget = catchAsync(
@@ -132,29 +132,85 @@ export const getBudgetById = catchAsync(
   }
 );
 
+// export const updateBudget = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { id } = req.params as unknown as TGetBudgetByIdType;
+//     const { amount, spent, startDate, endDate } =
+//       req.body as unknown as TUpdateBudgetType; 
+//       const userId = req.user.id;
+
+//       const budget = await prisma.budget.findUnique({
+//         where: { id, userId },
+//       });
+
+//       if (!budget) {
+//         throw new AppError(codes.notFound, "Budget not found");
+//       }
+
+//     const updatedBudget = await prisma.budget.update({
+//       where: { id, userId },
+//       data: {
+//         amount,
+//         spent,
+//         startDate: new Date(startDate),
+//         endDate: new Date(endDate),
+//       },
+//     });
+
+//     res.status(codes.success).json({
+//       status: "success",
+//       message: "Budget updated successfully",
+//       data: { updatedBudget },
+//     });
+//   }
+// );
+
+
 export const updateBudget = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params as unknown as TUpdateBudgetType;
-    const { amount, spent, startDate, endDate } =
-      req.body as unknown as TUpdateBudgetType; 
-      const userId = req.user.id;
+    const { id } = req.params as TGetBudgetByIdType;
 
-      const budget = await prisma.budget.findUnique({
-        where: { id, userId },
-      });
+    const {
+      amount,
+      spent,
+      startDate,
+      endDate,
+    } = req.body as TUpdateBudgetType;
 
-      if (!budget) {
-        throw new AppError(codes.notFound, "Budget not found");
-      }
+    const userId = req.user.id;
+
+    const budget = await prisma.budget.findFirst({
+      where: {
+        id,
+        userId,
+      },
+    });
+
+    if (!budget) {
+      throw new AppError(codes.notFound, "Budget not found");
+    }
+
+    const updateData: Prisma.BudgetUpdateInput = {};
+
+    if (amount !== undefined) {
+      updateData.amount = amount;
+    }
+
+    if (spent !== undefined) {
+      updateData.spent = spent;
+    }
+
+    if (startDate !== undefined) {
+      updateData.startDate = new Date(startDate);
+    }
+
+    if (endDate !== undefined) {
+      updateData.endDate = new Date(endDate);
+    }
 
     const updatedBudget = await prisma.budget.update({
-      where: { id, userId },
-      data: {
-        amount,
-        spent,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-      },
+      where: { id },
+      data: updateData,
     });
 
     res.status(codes.success).json({
